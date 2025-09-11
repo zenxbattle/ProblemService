@@ -3,9 +3,7 @@ name: CI-CD Pipeline
 on:
   push:
     branches:
-      - deploytesting
       - main
-      - testcicd
   workflow_dispatch:
 
 jobs:
@@ -17,7 +15,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.27.0
         with:
           slack-bot-token: ${{ secrets.SLACK_WEBHOOK_URL }}
-          channel-id: "ci-cd-notifications" # Replace with your Slack channel name
+          channel-id: "ci-cd-notifications"
           payload: |
             {
               "blocks": [
