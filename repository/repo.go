@@ -754,39 +754,39 @@ func (r *Repository) GetLanguageSupports(ctx context.Context, req *pb.GetLanguag
 	}, nil
 }
 
-func (r *Repository) BasicValidationByProblemID(ctx context.Context, req *pb.FullValidationByProblemIDRequest) (*pb.FullValidationByProblemIDResponse, model.Problem, error) {
+func (r *Repository) BasicValidationByProblemID(ctx context.Context, req *pb.FullValidationByProblemIdRequest) (*pb.FullValidationByProblemIdResponse, model.Problem, error) {
 	id, err := primitive.ObjectIDFromHex(req.ProblemId)
 	if err != nil {
-		return &pb.FullValidationByProblemIDResponse{Success: false, Message: "Invalid problem ID", ErrorType: "INVALID_ID"}, model.Problem{}, nil
+		return &pb.FullValidationByProblemIdResponse{Success: false, Message: "Invalid problem ID", ErrorType: "INVALID_ID"}, model.Problem{}, nil
 	}
 	var problem model.Problem
 	err = r.problemsCollection.FindOne(ctx, bson.M{"_id": id, "deleted_at": nil}).Decode(&problem)
 	if err != nil {
-		return &pb.FullValidationByProblemIDResponse{Success: false, Message: "Problem not found", ErrorType: "NOT_FOUND"}, model.Problem{}, nil
+		return &pb.FullValidationByProblemIdResponse{Success: false, Message: "Problem not found", ErrorType: "NOT_FOUND"}, model.Problem{}, nil
 	}
 	if len(problem.TestCases.Run) < 3 && len(problem.TestCases.Submit) < 5 {
-		return &pb.FullValidationByProblemIDResponse{Success: false, Message: "requirements not satisifed for len(testcase) >= 3 and len(submitcase) >= 5", ErrorType: "INSUFFICIENT_TESTCASES"}, model.Problem{}, nil
+		return &pb.FullValidationByProblemIdResponse{Success: false, Message: "requirements not satisifed for len(testcase) >= 3 and len(submitcase) >= 5", ErrorType: "INSUFFICIENT_TESTCASES"}, model.Problem{}, nil
 	}
 	if len(problem.SupportedLanguages) == 0 {
-		return &pb.FullValidationByProblemIDResponse{Success: false, Message: "No supported languages", ErrorType: "NO_LANGUAGES"}, model.Problem{}, nil
+		return &pb.FullValidationByProblemIdResponse{Success: false, Message: "No supported languages", ErrorType: "NO_LANGUAGES"}, model.Problem{}, nil
 	}
 	for _, lang := range problem.SupportedLanguages {
 		if _, ok := problem.ValidateCode[lang]; !ok {
-			return &pb.FullValidationByProblemIDResponse{Success: false, Message: "Missing validation code for " + lang, ErrorType: "MISSING_VALIDATION_CODES"}, model.Problem{}, nil
+			return &pb.FullValidationByProblemIdResponse{Success: false, Message: "Missing validation code for " + lang, ErrorType: "MISSING_VALIDATION_CODES"}, model.Problem{}, nil
 		}
 		if problem.ValidateCode[lang].Placeholder == "" {
-			return &pb.FullValidationByProblemIDResponse{Success: false, Message: "Missing placeholder for language " + lang, ErrorType: "MISSING_PLACEHOLDER"}, model.Problem{}, nil
+			return &pb.FullValidationByProblemIdResponse{Success: false, Message: "Missing placeholder for language " + lang, ErrorType: "MISSING_PLACEHOLDER"}, model.Problem{}, nil
 		}
 		if problem.ValidateCode[lang].Template == "" {
-			return &pb.FullValidationByProblemIDResponse{Success: false, Message: "Missing template for language " + lang, ErrorType: "MISSING_TEMPLATE"}, model.Problem{}, nil
+			return &pb.FullValidationByProblemIdResponse{Success: false, Message: "Missing template for language " + lang, ErrorType: "MISSING_TEMPLATE"}, model.Problem{}, nil
 		}
 
 		if problem.ValidateCode[lang].Code == "" {
-			return &pb.FullValidationByProblemIDResponse{Success: false, Message: "Missing code for language " + lang, ErrorType: "MISSING_CODE"}, model.Problem{}, nil
+			return &pb.FullValidationByProblemIdResponse{Success: false, Message: "Missing code for language " + lang, ErrorType: "MISSING_CODE"}, model.Problem{}, nil
 		}
 	}
 
-	return &pb.FullValidationByProblemIDResponse{Success: true, Message: "Basic Validation completed successfully", ErrorType: ""}, problem, nil
+	return &pb.FullValidationByProblemIdResponse{Success: true, Message: "Basic Validation completed successfully", ErrorType: ""}, problem, nil
 }
 
 func (r *Repository) ToggleProblemValidaition(ctx context.Context, problemID string, status bool) bool {
@@ -799,7 +799,7 @@ func (r *Repository) ToggleProblemValidaition(ctx context.Context, problemID str
 	return problem.Validated
 }
 
-func (r *Repository) GetSubmissionsByOptionalProblemID(ctx context.Context, req *pb.GetSubmissionsRequest) (*pb.GetSubmissionsResponse, error) {
+func (r *Repository) GetSubmissionsByOptionalProblemId(ctx context.Context, req *pb.GetSubmissionsRequest) (*pb.GetSubmissionsResponse, error) {
 	var filter bson.M
 	if req.ProblemId != nil && *req.ProblemId != "" {
 		fmt.Println(req)
@@ -905,7 +905,7 @@ func (r *Repository) GetProblemByIDSlug(ctx context.Context, req *pb.GetProblemB
 		return nil, err
 	}
 	return &pb.GetProblemByIdSlugResponse{
-		Problemmetdata: ToProblemMetadataLite(problem),
+		ProblemMetadata: ToProblemMetadataLite(problem),
 		Message:        "Problem retrieved successfully",
 	}, nil
 }
@@ -939,11 +939,11 @@ func (r *Repository) GetProblemByIDList(ctx context.Context, req *pb.GetProblemM
 		return nil, err
 	}
 	resp := &pb.GetProblemMetadataListResponse{
-		Problemmetdata: make([]*pb.ProblemMetadataLite, len(problems)),
+		ProblemMetadata: make([]*pb.ProblemMetadataLite, len(problems)),
 		Message:        "Problems retrieved successfully",
 	}
 	for i, p := range problems {
-		resp.Problemmetdata[i] = ToProblemMetadataLite(p)
+		resp.ProblemMetadata[i] = ToProblemMetadataLite(p)
 	}
 	return resp, nil
 }
@@ -1221,7 +1221,7 @@ func (r *Repository) GetMonthlyContributionHistory(userID string, month, year in
 		return model.MonthlyActivityHeatmapProps{}, err
 	}
 
-	// merge baseline with aggregated data
+	//merge baseline with aggregated data
 	dayMap := make(map[string]model.ActivityDay)
 	for _, day := range baseDays {
 		dayMap[day.Date] = day
@@ -1271,7 +1271,6 @@ func ToPBSubmission(s model.Submission) *pb.Submission {
 
 func (r *Repository) ForceChangeUserCountryInSubmission(ctx context.Context, req *pb.ForceChangeUserEntityInSubmissionRequest) {
 	newEntity := strings.ToUpper(req.Entity)
-
 	filter := bson.M{"userId": req.UserId}
 	update := bson.M{
 		"$set": bson.M{
@@ -1281,11 +1280,11 @@ func (r *Repository) ForceChangeUserCountryInSubmission(ctx context.Context, req
 
 	const maxRetries = 3
 	for i := 0; i < maxRetries; i++ {
-		_, err := r.submissionFirstSuccessCollection.UpdateMany(ctx, filter, update)
-		if err == nil {
+		res, err := r.submissionFirstSuccessCollection.UpdateMany(ctx, filter, update)
+		if err == nil && res.ModifiedCount > 0 {
 			return
 		}
-		time.Sleep(time.Millisecond * 50) // simple backoff
+		time.Sleep(time.Millisecond * 50) //simple backoff
 	}
 }
 
@@ -1294,7 +1293,7 @@ func (r *Repository) GetBulkProblemMetadata(ctx context.Context, req *pb.GetBulk
 		return &pb.GetBulkProblemMetadataResponse{}, nil
 	}
 
-	// build $in query directly using hex ids
+	//build $in query directly using hex ids
 	filter := bson.M{
 		"_id": bson.M{
 			"$in": convertHexToObjectIDs(req.ProblemIds),
@@ -1313,7 +1312,7 @@ func (r *Repository) GetBulkProblemMetadata(ctx context.Context, req *pb.GetBulk
 		return nil, err
 	}
 
-	// build result
+	//build result
 	metadata := make([]*pb.BulkProblemMetadata, 0, len(problems))
 	for _, p := range problems {
 		metadata = append(metadata, &pb.BulkProblemMetadata{
@@ -1329,17 +1328,185 @@ func (r *Repository) GetBulkProblemMetadata(ctx context.Context, req *pb.GetBulk
 	}, nil
 }
 
+func (r *Repository) VerifyProblemExistenceBulk(ctx context.Context, req *pb.VerifyProblemExistenceBulkRequest) (*pb.VerifyProblemExistenceBulkResponse, error) {
+	result := make(map[string]bool, len(req.ProblemIds))
+	if len(req.ProblemIds) == 0 {
+		return &pb.VerifyProblemExistenceBulkResponse{ProblemExistence: result}, nil
+	}
+	objIDs := convertHexToObjectIDs(req.ProblemIds)
+	filter := bson.M{
+		"_id":     bson.M{"$in": objIDs},
+		"visible": true,
+	}
+	cursor, err := r.problemsCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	found := make(map[string]struct{})
+	for cursor.Next(ctx) {
+		var p model.Problem
+		if err := cursor.Decode(&p); err == nil {
+			found[p.ID.Hex()] = struct{}{}
+		}
+	}
+	for _, id := range req.ProblemIds {
+		_, ok := found[id]
+		result[id] = ok
+	}
+	return &pb.VerifyProblemExistenceBulkResponse{ProblemExistence: result}, nil
+}
 
-//VerifyProblemExistenceBulk
+func (r *Repository) RandomProblemIDsGenWithDifficultyRatio(ctx context.Context, req *pb.RandomProblemIdsGenWithDifficultyRatioRequest) (*pb.RandomProblemIdsGenWithDifficultyRatioResponse, error) {
+	ratio := map[string]int{
+		"easy":   int(req.QnRatio.Easy),
+		"medium": int(req.QnRatio.Medium),
+		"hard":   int(req.QnRatio.Hard),
+	}
+	result := map[string]interface{}{"easy": nil, "medium": nil, "hard": nil}
+	status := true
+	diffMap := map[string]string{"easy": "E", "medium": "M", "hard": "H"}
+	finalIDs := []string{}
+	unavailable := &pb.ProblemDifficultyRatio{}
+	for key, dbDiff := range diffMap {
+		count := ratio[key]
+		if count <= 0 {
+			result[key] = []string{}
+			continue
+		}
+		filter := bson.M{"difficulty": dbDiff, "visible": true, "deleted_at": nil}
+		total, err := r.problemsCollection.CountDocuments(ctx, filter)
+		if err != nil {
+			result[key] = 0
+			status = false
+			continue
+		}
+		if int(total) < count {
+			switch key {
+			case "easy":
+				unavailable.Easy = int32(count - int(total))
+			case "medium":
+				unavailable.Medium = int32(count - int(total))
+			case "hard":
+				unavailable.Hard = int32(count - int(total))
+			}
+			status = false
+			continue
+		}
+		pipeline := mongo.Pipeline{
+			{{Key: "$match", Value: filter}},
+			{{Key: "$sample", Value: bson.M{"size": count}}},
+		}
+		cursor, err := r.problemsCollection.Aggregate(ctx, pipeline)
+		if err != nil {
+			status = false
+			continue
+		}
+		defer cursor.Close(ctx)
+		for cursor.Next(ctx) {
+			var p model.Problem
+			if err := cursor.Decode(&p); err == nil {
+				finalIDs = append(finalIDs, p.ID.Hex())
+			}
+		}
+	}
+	msg := "success"
+	errType := ""
+	if !status {
+		msg = "Not enough problems for requested ratio"
+		errType = "INSUFFICIENT_PROBLEMS"
+	}
+	return &pb.RandomProblemIdsGenWithDifficultyRatioResponse{
+		ProblemIds: finalIDs,
+		QnRatio:    unavailable,
+		Success:    status,
+		Message:    msg,
+		ErrorType:  errType,
+	}, nil
+}
 
-//RandomProblemIDsGenWithDifficultyRatio
+func (r *Repository) ProblemIDsDoneByUserID(ctx context.Context, req *pb.ProblemIdsDoneByUserIdRequest) (*pb.ProblemIdsDoneByUserIdResponse, error) {
+	result := []string{}
+	if req.UserId == "" {
+		return &pb.ProblemIdsDoneByUserIdResponse{
+			ProblemIds: result,
+			Success:    false,
+			Message:    "user_id is empty",
+			ErrorType:  "INVALID_USER_ID",
+		}, nil
+	}
+	cursor, err := r.submissionFirstSuccessCollection.Find(ctx, bson.M{"userId": req.UserId})
+	if err != nil {
+		return &pb.ProblemIdsDoneByUserIdResponse{
+			ProblemIds: result,
+			Success:    false,
+			Message:    "db error",
+			ErrorType:  "DB_ERROR",
+		}, err
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var done model.ProblemDone
+		if err := cursor.Decode(&done); err == nil {
+			result = append(result, done.ProblemID)
+		}
+	}
+	return &pb.ProblemIdsDoneByUserIdResponse{
+		ProblemIds: result,
+		Success:    true,
+		Message:    "success",
+		ErrorType:  "",
+	}, nil
+}
 
-//ProblemIDsDoneByUserID
+func (r *Repository) ProblemCountMetadata(ctx context.Context, req *pb.ProblemCountMetadataRequest) (*pb.ProblemCountMetadataResponse, error) {
+	countEasy, err := r.problemsCollection.CountDocuments(ctx, bson.M{
+		"$or": []bson.M{
+			{"difficulty": "E"},
+			{"difficulty": "e"},
+			{"difficulty": "easy"},
+			{"difficulty": "Easy"},
+			{"difficulty": "EASY"},
+		},
+		"deleted_at": nil,
+	})
+	if err != nil {
+		countEasy = 0
+	}
+	countMedium, err := r.problemsCollection.CountDocuments(ctx, bson.M{
+		"$or": []bson.M{
+			{"difficulty": "M"},
+			{"difficulty": "m"},
+			{"difficulty": "medium"},
+			{"difficulty": "Medium"},
+			{"difficulty": "MEDIUM"},
+		},
+		"deleted_at": nil,
+	})
+	if err != nil {
+		countMedium = 0
+	}
+	countHard, err := r.problemsCollection.CountDocuments(ctx, bson.M{
+		"$or": []bson.M{
+			{"difficulty": "H"},
+			{"difficulty": "h"},
+			{"difficulty": "hard"},
+			{"difficulty": "Hard"},
+			{"difficulty": "HARD"},
+		},
+		"deleted_at": nil,
+	})
+	if err != nil {
+		countHard = 0
+	}
 
+	return &pb.ProblemCountMetadataResponse{
+		Easy:   int32(countEasy),
+		Medium: int32(countMedium),
+		Hard:   int32(countHard),
+	}, nil
 
-
-
-
+}
 
 // helper to convert hex strings to valid objectIDs
 func convertHexToObjectIDs(ids []string) []primitive.ObjectID {
@@ -1351,4 +1518,3 @@ func convertHexToObjectIDs(ids []string) []primitive.ObjectID {
 	}
 	return objectIDs
 }
-

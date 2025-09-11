@@ -756,7 +756,7 @@ func (s *ProblemService) GetLanguageSupports(ctx context.Context, req *pb.GetLan
 }
 
 // FullValidationByProblemID validates a problem across all supported languages
-func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.FullValidationByProblemIDRequest) (*pb.FullValidationByProblemIDResponse, error) {
+func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.FullValidationByProblemIdRequest) (*pb.FullValidationByProblemIdResponse, error) {
 	traceID := uuid.New().String()
 	s.logger.Log(zapcore.InfoLevel, traceID, "Starting FullValidationByProblemID", map[string]any{
 		"method":    "FullValidationByProblemID",
@@ -768,7 +768,7 @@ func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.
 			"method":    "FullValidationByProblemID",
 			"errorType": "VALIDATION_ERROR",
 		}, "SERVICE", nil)
-		return &pb.FullValidationByProblemIDResponse{
+		return &pb.FullValidationByProblemIdResponse{
 			Success:   false,
 			Message:   "Problem ID is required",
 			ErrorType: "VALIDATION_ERROR",
@@ -802,7 +802,7 @@ func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.
 				"errorType": "CONFIGURATION_ERROR",
 			}, "SERVICE", nil)
 			s.RepoConnInstance.ToggleProblemValidaition(ctx, req.ProblemId, false)
-			return &pb.FullValidationByProblemIDResponse{
+			return &pb.FullValidationByProblemIdResponse{
 				Success:   false,
 				Message:   fmt.Sprintf("No validation code found for language: %s", lang),
 				ErrorType: "CONFIGURATION_ERROR",
@@ -823,7 +823,7 @@ func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.
 				"errorType": "EXECUTION_ERROR",
 			}, "SERVICE", err)
 			s.RepoConnInstance.ToggleProblemValidaition(ctx, req.ProblemId, false)
-			return &pb.FullValidationByProblemIDResponse{
+			return &pb.FullValidationByProblemIdResponse{
 				Success:   false,
 				Message:   fmt.Sprintf("Execution failed for language %s: %v", lang, err),
 				ErrorType: "EXECUTION_ERROR",
@@ -850,7 +850,7 @@ func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.
 				"errorType": "EXECUTION_ERROR",
 			}, "SERVICE", nil)
 			s.RepoConnInstance.ToggleProblemValidaition(ctx, req.ProblemId, false)
-			return &pb.FullValidationByProblemIDResponse{
+			return &pb.FullValidationByProblemIdResponse{
 				Success:   false,
 				Message:   fmt.Sprintf("No output received for language %s", lang),
 				ErrorType: "EXECUTION_ERROR",
@@ -865,7 +865,7 @@ func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.
 				"errorType": "VALIDATION_FAILED",
 			}, "SERVICE", nil)
 			s.RepoConnInstance.ToggleProblemValidaition(ctx, req.ProblemId, false)
-			return &pb.FullValidationByProblemIDResponse{
+			return &pb.FullValidationByProblemIdResponse{
 				Success:   false,
 				Message:   fmt.Sprintf("Validation failed for language %s", lang),
 				ErrorType: "VALIDATION_FAILED",
@@ -899,25 +899,25 @@ func (s *ProblemService) FullValidationByProblemID(ctx context.Context, req *pb.
 		"problemId": req.ProblemId,
 		"status":    status,
 	}, "SERVICE", nil)
-	return &pb.FullValidationByProblemIDResponse{
+	return &pb.FullValidationByProblemIdResponse{
 		Success:   status,
 		Message:   message,
 		ErrorType: "",
 	}, nil
 }
 
-// GetSubmissionsByOptionalProblemID retrieves submissions
-func (s *ProblemService) GetSubmissionsByOptionalProblemID(ctx context.Context, req *pb.GetSubmissionsRequest) (*pb.GetSubmissionsResponse, error) {
+// GetSubmissionsByOptionalProblemId retrieves submissions
+func (s *ProblemService) GetSubmissionsByOptionalProblemId(ctx context.Context, req *pb.GetSubmissionsRequest) (*pb.GetSubmissionsResponse, error) {
 	traceID := uuid.New().String()
-	s.logger.Log(zapcore.InfoLevel, traceID, "Starting GetSubmissionsByOptionalProblemID", map[string]any{
-		"method":    "GetSubmissionsByOptionalProblemID",
+	s.logger.Log(zapcore.InfoLevel, traceID, "Starting GetSubmissionsByOptionalProblemId", map[string]any{
+		"method":    "GetSubmissionsByOptionalProblemId",
 		"problemId": *req.ProblemId,
 		"userId":    req.UserId,
 	}, "SERVICE", nil)
 
 	if *req.ProblemId == "" && req.UserId == "" {
 		s.logger.Log(zapcore.ErrorLevel, traceID, "Missing problem ID and user ID", map[string]any{
-			"method":    "GetSubmissionsByOptionalProblemID",
+			"method":    "GetSubmissionsByOptionalProblemId",
 			"errorType": "VALIDATION_ERROR",
 		}, "SERVICE", nil)
 		return nil, s.createGrpcError(codes.InvalidArgument, "Problem ID and user ID are required", "VALIDATION_ERROR", nil)
@@ -930,13 +930,13 @@ func (s *ProblemService) GetSubmissionsByOptionalProblemID(ctx context.Context, 
 		cachedStr, ok := cachedSubmissions.(string)
 		if !ok {
 			s.logger.Log(zapcore.ErrorLevel, traceID, "Failed to assert cached submissions to string", map[string]any{
-				"method":    "GetSubmissionsByOptionalProblemID",
+				"method":    "GetSubmissionsByOptionalProblemId",
 				"cacheKey":  cacheKey,
 				"errorType": "CACHE_ERROR",
 			}, "SERVICE", nil)
 		} else if err := json.Unmarshal([]byte(cachedStr), &submissions); err == nil {
 			s.logger.Log(zapcore.InfoLevel, traceID, "Submissions retrieved from cache", map[string]any{
-				"method":    "GetSubmissionsByOptionalProblemID",
+				"method":    "GetSubmissionsByOptionalProblemId",
 				"problemId": *req.ProblemId,
 				"userId":    req.UserId,
 				"cacheKey":  cacheKey,
@@ -945,10 +945,10 @@ func (s *ProblemService) GetSubmissionsByOptionalProblemID(ctx context.Context, 
 		}
 	}
 
-	resp, err := s.RepoConnInstance.GetSubmissionsByOptionalProblemID(ctx, req)
+	resp, err := s.RepoConnInstance.GetSubmissionsByOptionalProblemId(ctx, req)
 	if err != nil {
 		s.logger.Log(zapcore.ErrorLevel, traceID, "Failed to retrieve submissions from DB", map[string]any{
-			"method":    "GetSubmissionsByOptionalProblemID",
+			"method":    "GetSubmissionsByOptionalProblemId",
 			"problemId": *req.ProblemId,
 			"userId":    req.UserId,
 			"errorType": "DB_ERROR",
@@ -959,21 +959,21 @@ func (s *ProblemService) GetSubmissionsByOptionalProblemID(ctx context.Context, 
 	submissionsBytes, err := json.Marshal(resp)
 	if err != nil {
 		s.logger.Log(zapcore.ErrorLevel, traceID, "Failed to marshal submissions", map[string]any{
-			"method":    "GetSubmissionsByOptionalProblemID",
+			"method":    "GetSubmissionsByOptionalProblemId",
 			"problemId": *req.ProblemId,
 			"userId":    req.UserId,
 			"errorType": "MARSHAL_ERROR",
 		}, "SERVICE", err)
 	} else if err := s.RedisCacheClient.Set(cacheKey, submissionsBytes, 5*time.Second); err != nil {
 		s.logger.Log(zapcore.ErrorLevel, traceID, "Failed to cache submissions", map[string]any{
-			"method":    "GetSubmissionsByOptionalProblemID",
+			"method":    "GetSubmissionsByOptionalProblemId",
 			"cacheKey":  cacheKey,
 			"errorType": "CACHE_ERROR",
 		}, "SERVICE", err)
 	}
 
 	s.logger.Log(zapcore.InfoLevel, traceID, "Submissions retrieved successfully", map[string]any{
-		"method":    "GetSubmissionsByOptionalProblemID",
+		"method":    "GetSubmissionsByOptionalProblemId",
 		"problemId": *req.ProblemId,
 		"userId":    req.UserId,
 	}, "SERVICE", nil)
@@ -981,7 +981,7 @@ func (s *ProblemService) GetSubmissionsByOptionalProblemID(ctx context.Context, 
 }
 
 // GetProblemByIDSlug retrieves a problem by ID or slug
-func (s *ProblemService) GetProblemByIDSlug(ctx context.Context, req *pb.GetProblemByIdSlugRequest) (*pb.GetProblemByIdSlugResponse, error) {
+func (s *ProblemService) GetProblemByIdSlug(ctx context.Context, req *pb.GetProblemByIdSlugRequest) (*pb.GetProblemByIdSlugResponse, error) {
 	traceID := uuid.New().String()
 	s.logger.Log(zapcore.InfoLevel, traceID, "Starting GetProblemByIDSlug", map[string]any{
 		"method":    "GetProblemByIDSlug",
@@ -1478,12 +1478,12 @@ func (s *ProblemService) GetMonthlyActivityHeatmap(ctx context.Context, req *pb.
 	traceID := uuid.New().String()
 	s.logger.Log(zapcore.InfoLevel, traceID, "Starting GetMonthlyActivityHeatmap", map[string]any{
 		"method": "GetMonthlyActivityHeatmap",
-		"userId": req.UserID,
+		"userId": req.UserId,
 		"year":   req.Year,
 		"month":  req.Month,
 	}, "SERVICE", nil)
 
-	cacheKey := fmt.Sprintf("heatmap:%s:%d:%d", req.UserID, req.Year, req.Month)
+	cacheKey := fmt.Sprintf("heatmap:%s:%d:%d", req.UserId, req.Year, req.Month)
 	cachedData, err := s.RedisCacheClient.Get(cacheKey)
 	if err == nil && cachedData != nil {
 		var heatmap pb.GetMonthlyActivityHeatmapResponse
@@ -1497,18 +1497,18 @@ func (s *ProblemService) GetMonthlyActivityHeatmap(ctx context.Context, req *pb.
 		} else if err := json.Unmarshal([]byte(cachedStr), &heatmap); err == nil {
 			s.logger.Log(zapcore.InfoLevel, traceID, "Heatmap retrieved from cache", map[string]any{
 				"method":   "GetMonthlyActivityHeatmap",
-				"userId":   req.UserID,
+				"userId":   req.UserId,
 				"cacheKey": cacheKey,
 			}, "SERVICE", nil)
 			return &heatmap, nil
 		}
 	}
 
-	data, err := s.RepoConnInstance.GetMonthlyContributionHistory(req.UserID, int(req.Month), int(req.Year))
+	data, err := s.RepoConnInstance.GetMonthlyContributionHistory(req.UserId, int(req.Month), int(req.Year))
 	if err != nil {
 		s.logger.Log(zapcore.ErrorLevel, traceID, "Failed to retrieve heatmap from DB", map[string]any{
 			"method":    "GetMonthlyActivityHeatmap",
-			"userId":    req.UserID,
+			"userId":    req.UserId,
 			"year":      req.Year,
 			"month":     req.Month,
 			"errorType": "DB_ERROR",
@@ -1535,7 +1535,7 @@ func (s *ProblemService) GetMonthlyActivityHeatmap(ctx context.Context, req *pb.
 	if err != nil {
 		s.logger.Log(zapcore.ErrorLevel, traceID, "Failed to marshal heatmap response", map[string]any{
 			"method":    "GetMonthlyActivityHeatmap",
-			"userId":    req.UserID,
+			"userId":    req.UserId,
 			"errorType": "MARSHAL_ERROR",
 		}, "SERVICE", err)
 	} else if err := s.RedisCacheClient.Set(cacheKey, heatmapBytes, ttl); err != nil {
@@ -1548,7 +1548,7 @@ func (s *ProblemService) GetMonthlyActivityHeatmap(ctx context.Context, req *pb.
 
 	s.logger.Log(zapcore.InfoLevel, traceID, "Heatmap retrieved successfully", map[string]any{
 		"method": "GetMonthlyActivityHeatmap",
-		"userId": req.UserID,
+		"userId": req.UserId,
 		"year":   req.Year,
 		"month":  req.Month,
 	}, "SERVICE", nil)
@@ -1576,7 +1576,7 @@ func (s *ProblemService) GetTopKGlobal(ctx context.Context, req *pb.GetTopKGloba
 	}, "SERVICE", nil)
 
 	startRedis := time.Now()
-	users, err := s.LB.GetTopKGlobal()
+	users, err := s.LB.GetTopKGlobal() //redis
 	if err == nil && len(users) > 0 {
 		s.logger.Log(zapcore.InfoLevel, traceID, "Retrieved top K global users from Redis", map[string]any{
 			"method":   "GetTopKGlobal",
@@ -1905,26 +1905,21 @@ func (s *ProblemService) ForceChangeUserEntityInSubmission(ctx context.Context, 
 
 func (s *ProblemService) GetBulkProblemMetadata(ctx context.Context, req *pb.GetBulkProblemMetadataRequest) (*pb.GetBulkProblemMetadataResponse, error) {
 	return s.RepoConnInstance.GetBulkProblemMetadata(ctx, req)
-
 }
 
-func (s *ProblemService) CheckProblemExistenceBulk(ctx context.Context, req *pb.CheckProblemExistenceBulkRequest) (*pb.CheckProblemExistenceBulkResponse, error) {
-
-	return &pb.CheckProblemExistenceBulkResponse{}, nil
+func (s *ProblemService) ProblemIDsDoneByUserID(ctx context.Context, req *pb.ProblemIdsDoneByUserIdRequest) (*pb.ProblemIdsDoneByUserIdResponse, error) {
+	return s.RepoConnInstance.ProblemIDsDoneByUserID(ctx, req)
 }
 
-func (s *ProblemService) RandomProblemIDsGenWithDifficultyRatio(ctx context.Context, req *pb.RandomProblemIDsGenWithDifficultyRatioRequest) (*pb.RandomProblemIDsGenWithDifficultyRatioResponse, error) {
-
-	return &pb.RandomProblemIDsGenWithDifficultyRatioResponse{}, nil
+func (s *ProblemService) VerifyProblemExistenceBulk(ctx context.Context, req *pb.VerifyProblemExistenceBulkRequest) (*pb.VerifyProblemExistenceBulkResponse, error) {
+	return s.RepoConnInstance.VerifyProblemExistenceBulk(ctx, req)
 }
 
-func (s *ProblemService) ProblemIDsDoneByUserID(ctx context.Context, req *pb.ProblemIDsDoneByUserIDRequest) (*pb.ProblemIDsDoneByUserIDResponse, error) {
-
-	return &pb.ProblemIDsDoneByUserIDResponse{}, nil
+func (s *ProblemService) RandomProblemIDsGenWithDifficultyRatio(ctx context.Context, req *pb.RandomProblemIdsGenWithDifficultyRatioRequest) (*pb.RandomProblemIdsGenWithDifficultyRatioResponse, error) {
+	return s.RepoConnInstance.RandomProblemIDsGenWithDifficultyRatio(ctx, req)
 }
 
-//VerifyProblemExistenceBulk
-
-//RandomProblemIDsGenWithDifficultyRatio
-
-//ProblemIDsDoneByUserID
+// available difficulty count, problem count metadata
+func (s *ProblemService) ProblemCountMetadata(ctx context.Context, req *pb.ProblemCountMetadataRequest) (*pb.ProblemCountMetadataResponse, error) {
+	return s.RepoConnInstance.ProblemCountMetadata(ctx, req)
+}
