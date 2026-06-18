@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"time"
 	"xcode/cache"
 	configs "xcode/config"
 	"xcode/mongoconn"
@@ -19,20 +20,31 @@ import (
 	"google.golang.org/grpc"
 )
 
-//TODO - Use Zap_BetterStack logger  throughtout this file -add TraceID as well --partiallydone, avoiding repo layer to reduce amount of logs
-//TODO - Study and Test all the challenge endpoints and create api doc.
-//TODO - psql -snakecase, mongodb - camelcase, fields - pascalcase.
+func mustConnect(name string, fn func() error) {
+	for {
+		err := fn()
+		if err == nil {
+			log.Printf("Connected to %s", name)
+			return
+		}
+		log.Printf("Retrying connection to %s: %v", name, err)
+		time.Sleep(3 * time.Second)
+	}
+}
 
 func main() {
-
 	config := configs.LoadConfig()
-	nc, err := natsclient.NewClient(config.NatsURL)
-	if err != nil {
-		log.Fatal(err)
-	}
+
+	var nc *natsclient.Client
+	mustConnect("NATS", func() error {
+		var err error
+		nc, err = natsclient.NewClient(config.NatsURL)
+		return err
+	})
 
 	// Initialize Zap logger based on environment
 	var logger *zap.Logger
+	var err error
 	if config.Environment == "development" {
 		logger, err = zap.NewDevelopment()
 	} else {
@@ -52,24 +64,26 @@ func main() {
 
 	// Initialize RedisBoard Leaderboard
 	lbConfig := redisboard.Config{
-		Namespace:   "user_Leaderboard_Unique", //namespace must be unique; avoid using similar prefixes in other parts of Redis, as this may lead to accidental key deletion when ForceClear is called
+		Namespace:   "user_Leaderboard_Unique",
 		K:           10,
 		MaxUsers:    1_000_000,
 		MaxEntities: 200,
 		FloatScores: true,
 		RedisAddr:   config.RedisURL,
 	}
-	lb, err := redisboard.New(lbConfig)
-	if err != nil {
-		log.Fatalf("Failed to initialize leaderboard: %v", err)
-	}
+	var lb *redisboard.Leaderboard
+	mustConnect("RedisBoard", func() error {
+		var lbErr error
+		lb, lbErr = redisboard.New(lbConfig)
+		return lbErr
+	})
 	defer lb.Close()
 
 	repoInstance := repository.NewRepository(mongoclientInstance, lb, logShipper)
 
 	serviceInstance := service.NewService(*repoInstance, nc, *redisCacheClient, lb, logShipper)
 
-	serviceInstance.StartCronJob() //NON Blocking cron for periodically syncing leaderboards.
+	serviceInstance.StartCronJob()
 
 	// Start gRPC server
 	lis, err := net.Listen("tcp", ":"+config.ProblemService)
@@ -80,9 +94,8 @@ func main() {
 	grpcServer := grpc.NewServer()
 	problemService.RegisterProblemsServiceServer(grpcServer, serviceInstance)
 
-	log.Printf("ProblemService gRPC server running on port %s", config.ProblemService) //50055
+	log.Printf("ProblemService gRPC server running on port %s", config.ProblemService)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve gRPC server: %v", err)
 	}
-
 }
