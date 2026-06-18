@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	zap_betterstack "xcode/logger"
+	"xcode/logutil"
 
 	"github.com/google/uuid"
 )
@@ -30,17 +30,17 @@ import (
 // ProblemService handles problem-related operations
 type ProblemService struct {
 	RepoConnInstance repository.Repository
-	NatsClient       *natsclient.NatsClient
+	NatsClient       *natsclient.Client
 	RedisCacheClient cache.RedisCache
 	LB               *redisboard.Leaderboard
 	pb.UnimplementedProblemsServiceServer
-	logger *zap_betterstack.BetterStackLogStreamer
+	logger *logutil.Logger
 }
 
-func NewService(repo repository.Repository, natsClient *natsclient.NatsClient, redisCache cache.RedisCache, lb *redisboard.Leaderboard, logger *zap_betterstack.BetterStackLogStreamer) *ProblemService {
+func NewService(repo repository.Repository, nc *natsclient.Client, redisCache cache.RedisCache, lb *redisboard.Leaderboard, logger *logutil.Logger) *ProblemService {
 	svc := &ProblemService{
 		RepoConnInstance: repo,
-		NatsClient:       natsClient,
+		NatsClient:       nc,
 		RedisCacheClient: redisCache,
 		LB:               lb,
 		logger:           logger,
@@ -1244,7 +1244,7 @@ func (s *ProblemService) RunUserCodeProblem(ctx context.Context, req *pb.RunProb
 	}
 
 	var result map[string]any
-	if err := json.Unmarshal(msg.Data, &result); err != nil {
+	if err := json.Unmarshal(msg, &result); err != nil {
 		s.logger.Log(zapcore.ErrorLevel, traceID, "Failed to parse execution result", map[string]any{
 			"method":    "RunUserCodeProblem",
 			"problemId": req.ProblemId,

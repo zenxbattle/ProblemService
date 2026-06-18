@@ -5,3 +5,7 @@ gin.log
 app.log
 *.log
 .vscode/settings.json
+# Local dev artifacts
+tmp/
+build-errors.log
+

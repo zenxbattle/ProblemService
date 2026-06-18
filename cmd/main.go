@@ -14,7 +14,7 @@ import (
 	redisboard "github.com/lijuuu/RedisBoard"
 	"go.uber.org/zap"
 
-	zap_betterstack "xcode/logger"
+	"xcode/logutil"
 
 	"google.golang.org/grpc"
 )
@@ -25,12 +25,11 @@ import (
 
 func main() {
 
-	natsClient, err := natsclient.NewNatsClient(configs.LoadConfig().NATSURL)
-	if err != nil {
-		log.Fatalf("Failed to create NATS client: %v", err)
-	}
-
 	config := configs.LoadConfig()
+	nc, err := natsclient.NewClient(config.NatsURL)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Initialize Zap logger based on environment
 	var logger *zap.Logger
@@ -44,17 +43,12 @@ func main() {
 	}
 	defer logger.Sync()
 
-	// Initialize BetterStackLogStreamer
-	logStreamer := zap_betterstack.NewBetterStackLogStreamer(
-		config.BetterStackSourceToken,
-		config.Environment,
-		config.BetterStackUploadURL,
-		logger,
-	)
+	// Initialize Logger
+	logShipper := logutil.New("problem-service")
 
 	redisCacheClient := cache.NewRedisCache(config.RedisURL, "", 0)
 
-	mongoclientInstance := mongoconn.ConnectDB()
+	mongoclientInstance := mongoconn.ConnectDB(config.MongoDBURL)
 
 	// Initialize RedisBoard Leaderboard
 	lbConfig := redisboard.Config{
@@ -71,9 +65,9 @@ func main() {
 	}
 	defer lb.Close()
 
-	repoInstance := repository.NewRepository(mongoclientInstance, lb, logStreamer)
+	repoInstance := repository.NewRepository(mongoclientInstance, lb, logShipper)
 
-	serviceInstance := service.NewService(*repoInstance, natsClient, *redisCacheClient, lb, logStreamer)
+	serviceInstance := service.NewService(*repoInstance, nc, *redisCacheClient, lb, logShipper)
 
 	serviceInstance.StartCronJob() //NON Blocking cron for periodically syncing leaderboards.
 

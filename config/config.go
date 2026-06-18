@@ -12,30 +12,26 @@ type Config struct {
 	UserGRPCPort   string
 	MongoDBURL     string
 	ProblemService string
-	NATSURL        string
+	NatsURL       string
 	RedisURL       string
 
-	Environment            string
-	BetterStackSourceToken string
-	BetterStackUploadURL   string
+	Environment string
 }
 
 func LoadConfig() Config {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file", err)
+		log.Println("No .env file found, using defaults:", err)
 	}
 	config := Config{
 		APIGATEWAYPORT: getEnv("APIGATEWAYPORT", "7000"),
 		UserGRPCPort:   getEnv("USERGRPCPORT", "50051"),
 		MongoDBURL:     getEnv("MONGODBURL", "mongodb://localhost:27017"),
 		ProblemService: getEnv("PROBLEMSERVICE", "50055"),
-		NATSURL:        getEnv("NATSURL", "nats://localhost:4222"),
+		NatsURL:       getEnv("NATSURL", "nats://localhost:4222"),
 		RedisURL:       getEnv("REDISURL", "localhost:6379"),
 
-		Environment:            getEnv("ENVIRONMENT", "development"),
-		BetterStackSourceToken: getEnv("BETTERSTACKSOURCETOKEN", ""),
-		BetterStackUploadURL:   getEnv("BETTERSTACKUPLOADURL", ""),
+		Environment: getEnv("ENVIRONMENT", "development"),
 	}
 
 	// fmt.Println(config)

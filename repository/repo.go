@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap/zapcore"
 
-	zap_betterstack "xcode/logger"
+	"xcode/logutil"
 )
 
 type Repository struct {
@@ -26,10 +26,10 @@ type Repository struct {
 	submissionFirstSuccessCollection *mongo.Collection
 	lb                               *redisboard.Leaderboard
 
-	logger *zap_betterstack.BetterStackLogStreamer
+	logger *logutil.Logger
 }
 
-func NewRepository(client *mongo.Client, lb *redisboard.Leaderboard, logger *zap_betterstack.BetterStackLogStreamer) *Repository {
+func NewRepository(client *mongo.Client, lb *redisboard.Leaderboard, logger *logutil.Logger) *Repository {
 	return &Repository{
 		mongoclientInstance:              client,
 		problemsCollection:               client.Database("problems_db").Collection("problems"),
