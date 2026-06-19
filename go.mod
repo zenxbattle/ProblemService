@@ -1,4 +1,4 @@
-module xcode
+module zenxbattle
 
 go 1.24.1
 
@@ -6,10 +6,10 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lijuuu/GlobalProtoXcode v0.0.0-20250719135342-f3b0e780fd6d
 	github.com/lijuuu/RedisBoard v0.0.0-20250617061554-f5fae0021242
 	github.com/nats-io/nats.go v1.39.1
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/zenxbattle/CommonProto v0.1.0
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.70.0

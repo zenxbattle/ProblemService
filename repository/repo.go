@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"xcode/model"
+	"zenxbattle/model"
 
-	pb "github.com/lijuuu/GlobalProtoXcode/ProblemsService"
+	pb "github.com/zenxbattle/CommonProto/ProblemsService"
 	redisboard "github.com/lijuuu/RedisBoard"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,7 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap/zapcore"
 
-	"xcode/logutil"
+	"zenxbattle/logutil"
 )
 
 type Repository struct {
@@ -921,10 +921,10 @@ func (r *Repository) GetProblemByIDList(ctx context.Context, req *pb.GetProblemM
 	if req.Difficulty != "" {
 		filter["difficulty"] = req.Difficulty
 	}
-	if req.SearchQuery != "" {
+	if req.SearchTitle != "" {
 		filter["$or"] = []bson.M{
-			{"title": bson.M{"$regex": req.SearchQuery, "$options": "i"}},
-			{"description": bson.M{"$regex": req.SearchQuery, "$options": "i"}},
+			{"title": bson.M{"$regex": req.SearchTitle, "$options": "i"}},
+			{"description": bson.M{"$regex": req.SearchTitle, "$options": "i"}},
 		}
 	}
 

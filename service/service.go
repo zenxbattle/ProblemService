@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"xcode/cache"
-	"xcode/model"
-	"xcode/natsclient"
-	"xcode/repository"
+	"zenxbattle/cache"
+	"zenxbattle/model"
+	"zenxbattle/natsclient"
+	"zenxbattle/repository"
 
-	pb "github.com/lijuuu/GlobalProtoXcode/ProblemsService"
+	pb "github.com/zenxbattle/CommonProto/ProblemsService"
 	redisboard "github.com/lijuuu/RedisBoard"
 	cron "github.com/robfig/cron/v3"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"xcode/logutil"
+	"zenxbattle/logutil"
 
 	"github.com/google/uuid"
 )

@@ -4,18 +4,18 @@ import (
 	"log"
 	"net"
 	"time"
-	"xcode/cache"
-	configs "xcode/config"
-	"xcode/mongoconn"
-	"xcode/natsclient"
-	"xcode/repository"
-	"xcode/service"
+	"zenxbattle/cache"
+	configs "zenxbattle/config"
+	"zenxbattle/mongoconn"
+	"zenxbattle/natsclient"
+	"zenxbattle/repository"
+	"zenxbattle/service"
 
-	problemService "github.com/lijuuu/GlobalProtoXcode/ProblemsService"
+	problemService "github.com/zenxbattle/CommonProto/ProblemsService"
 	redisboard "github.com/lijuuu/RedisBoard"
 	"go.uber.org/zap"
 
-	"xcode/logutil"
+	"zenxbattle/logutil"
 
 	"google.golang.org/grpc"
 )
