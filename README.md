@@ -1,13 +1,20 @@
-# Problem Service
+# problem service
 
-gRPC service for problem CRUD, test cases, code execution via NATS, and submission tracking.
+grpc service for problem crud, test case management, and code execution coordination. stores problems and submissions in mongodb, publishes execution requests to the engine via nats, and caches with redis.
 
-## Environment Variables
+## env vars
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ENVIRONMENT` | No | `development` | Runtime environment |
-| `MONGODBURL` | Yes | `mongodb://localhost:27017` | MongoDB connection URI |
-| `PROBLEMSERVICE` | No | `50055` | gRPC listen port |
-| `NATSURL` | No | `nats://localhost:4222` | NATS server URL |
-| `REDISURL` | No | `localhost:6379` | Redis address |
+| var | default | description |
+|-----|---------|-------------|
+| environment | development | runtime environment |
+| mongourl | mongodb://localhost:27017 | mongodb connection uri |
+| problemserviceport | 50055 | grpc listen port |
+| natsurl | nats://localhost:4222 | nats server url |
+| redisurl | localhost:6379 | redis address |
+
+## grpc services
+
+- problem crud (create, read, update, delete) with metadata and test cases
+- code execution (run user code against test cases, submit for scoring)
+- leaderboard queries (global top k, entity-specific)
+- submission history and problem statistics
